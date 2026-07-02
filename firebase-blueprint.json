@@ -1,0 +1,64 @@
+{
+  "entities": {
+    "Analytics": {
+      "title": "Analytics",
+      "description": "Global portfolio performance metrics",
+      "type": "object",
+      "properties": {
+        "pageViews": { "type": "integer" },
+        "resumeDownloads": { "type": "integer" },
+        "events": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": { "type": "string" },
+              "timestamp": { "type": "string" }
+            },
+            "required": ["type", "timestamp"]
+          }
+        }
+      },
+      "required": ["pageViews", "resumeDownloads"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "Contact message submissions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "message": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "category": { "type": "string" },
+        "sentiment": { "type": "string" }
+      },
+      "required": ["id", "name", "email", "message", "timestamp", "category"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global application configuration and AI preferences",
+      "type": "object",
+      "properties": {
+        "adminPasscode": { "type": "string" },
+        "useGeminiForContact": { "type": "boolean" }
+      },
+      "required": ["adminPasscode", "useGeminiForContact"]
+    }
+  },
+  "firestore": {
+    "analytics/{docId}": {
+      "schema": "Analytics",
+      "description": "Stores metrics like page views and downloads"
+    },
+    "messages/{docId}": {
+      "schema": "Message",
+      "description": "Stores contact submissions received from the portfolio"
+    },
+    "settings/{docId}": {
+      "schema": "Settings",
+      "description": "Stores global configs like passcode and AI processing flags"
+    }
+  }
+}
