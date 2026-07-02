@@ -5,6 +5,7 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
+    base: process.env.VITE_BASE_PATH || '/Vikas-Kumar-Velugubantla-Portfolio/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
