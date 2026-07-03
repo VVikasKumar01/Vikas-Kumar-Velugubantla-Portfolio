@@ -578,6 +578,22 @@ async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  // Custom CORS middleware to allow cross-origin requests from Azure Static Web Apps (or anywhere in production)
+  app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    
+    // Respond to preflight OPTIONS request instantly
+    if (req.method === "OPTIONS") {
+      res.sendStatus(204);
+      return;
+    }
+    next();
+  });
+
   app.use(express.json());
   app.use(express.static(path.join(process.cwd(), "public")));
 

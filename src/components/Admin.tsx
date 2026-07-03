@@ -4,6 +4,7 @@ import {
   Trash2, LogOut, CheckCircle, Smartphone, Download, Eye, Calendar, Sparkles, AlertTriangle
 } from "lucide-react";
 import { motion } from "motion/react";
+import { API_BASE } from "../config";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -138,13 +139,13 @@ export default function Admin({ onBack, onLoginStateChange, isBackendOffline = f
     if (!silent) setLoading(true);
     try {
       // 1. Fetch Analytics
-      const r1 = await fetch("/api/admin/analytics", {
+      const r1 = await fetch(`${API_BASE}/api/admin/analytics`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const d1 = await r1.json();
       
       // 2. Fetch Messages
-      const r2 = await fetch("/api/admin/messages", {
+      const r2 = await fetch(`${API_BASE}/api/admin/messages`, {
         headers: { "Authorization": `Bearer ${token}` }
       });
       const d2 = await r2.json();
@@ -175,7 +176,7 @@ export default function Admin({ onBack, onLoginStateChange, isBackendOffline = f
     setAiSettings({ useGeminiForContact: newValue });
 
     try {
-      const res = await fetch("/api/admin/settings", {
+      const res = await fetch(`${API_BASE}/api/admin/settings`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
@@ -225,7 +226,7 @@ export default function Admin({ onBack, onLoginStateChange, isBackendOffline = f
 
     setPasscodeLoading(true);
     try {
-      const response = await fetch("/api/admin/change-passcode", {
+      const response = await fetch(`${API_BASE}/api/admin/change-passcode`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -264,7 +265,7 @@ export default function Admin({ onBack, onLoginStateChange, isBackendOffline = f
     setLoading(true);
 
     try {
-      const response = await fetch("/api/admin/login", {
+      const response = await fetch(`${API_BASE}/api/admin/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ passcode })
@@ -292,7 +293,7 @@ export default function Admin({ onBack, onLoginStateChange, isBackendOffline = f
     const token = sessionStorage.getItem("admin_token");
     if (token) {
       try {
-        await fetch("/api/admin/logout", {
+        await fetch(`${API_BASE}/api/admin/logout`, {
           method: "POST",
           headers: { "Authorization": `Bearer ${token}` }
         });
@@ -316,7 +317,7 @@ export default function Admin({ onBack, onLoginStateChange, isBackendOffline = f
     if (!token) return;
 
     try {
-      const res = await fetch(`/api/admin/messages/${id}`, {
+      const res = await fetch(`${API_BASE}/api/admin/messages/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -345,7 +346,7 @@ export default function Admin({ onBack, onLoginStateChange, isBackendOffline = f
     if (!token) return;
 
     try {
-      const res = await fetch("/api/admin/analytics/reset", {
+      const res = await fetch(`${API_BASE}/api/admin/analytics/reset`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` }
       });

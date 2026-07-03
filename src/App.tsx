@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { API_BASE } from "./config";
 import Navbar from "./components/Navbar";
 import Hero from "./components/Hero";
 import Marquee from "./components/Marquee";
@@ -76,7 +77,7 @@ export default function App() {
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 4000);
-        const res = await fetch("/api/health", { 
+        const res = await fetch(`${API_BASE}/api/health`, { 
           method: "GET",
           signal: controller.signal 
         });
@@ -157,7 +158,7 @@ export default function App() {
 
     const logPageView = async () => {
       try {
-        await fetch("/api/analytics/view", { method: "POST" });
+        await fetch(`${API_BASE}/api/analytics/view`, { method: "POST" });
       } catch (err) {
         console.warn("Analytics tracker network pause:", err);
       }
@@ -201,7 +202,7 @@ export default function App() {
 
   const handleTrackResumeDownload = async () => {
     try {
-      await fetch("/api/resume/download", { method: "POST" });
+      await fetch(`${API_BASE}/api/resume/download`, { method: "POST" });
     } catch (err) {
       console.error("Resume tracker ping failed:", err);
     }
