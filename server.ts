@@ -927,6 +927,15 @@ Content: "${message}"`;
   } else {
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
+    
+    // Fallback static files serving if the frontend requests assets with a subfolder path prefix
+    app.use("/Vikas-Kumar-Velugubantla-Portfolio", express.static(distPath));
+    
+    // Serve index.html for base-prefix SPA route requests
+    app.get("/Vikas-Kumar-Velugubantla-Portfolio*", (req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
+    });
+    
     app.get("*", (req, res) => {
       res.sendFile(path.join(distPath, "index.html"));
     });

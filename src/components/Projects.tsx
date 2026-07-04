@@ -3,10 +3,10 @@ import { Project } from "../types";
 import { ExternalLink, Github, Code, Sparkles, Filter, Layers, ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
-import placeiqImg from "../assets/images/placeiq_mockup_1782209287741.jpg";
-import vaidyaVaniImg from "../assets/images/vaidya_vani_mockup_1782209302813.jpg";
-import treasureHuntImg from "../assets/images/Technical_Treasure_Hunt.jpg";
-import valorousImg from "../assets/images/Valorous_2k26.jpg";
+import placeiqImg from "../assets/images/placeiq_mockup_1783150990994.jpg";
+import vaidyaVaniImg from "../assets/images/vaidya_vani_mockup_1783151003411.jpg";
+import treasureHuntImg from "../assets/images/Technical_Treasure_Hunt.png";
+import valorousImg from "../assets/images/Valorous_2k26.png";
 
 const PROJECTS_DATA: Project[] = [
   {
