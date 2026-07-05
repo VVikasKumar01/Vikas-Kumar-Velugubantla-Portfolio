@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { ArrowDown, Download, Mail, ArrowRight, Github, Linkedin, Award, Play } from "lucide-react";
 import { motion } from "motion/react";
 import { jsPDF } from "jspdf";
-import avatarImage from "../assets/images/profile_avatar_1783150973214.jpg";
+import avatarImage from "../assets/images/profile_avatar_3D_1.png";
 
 interface HeroProps {
   onContactClick: () => void;
