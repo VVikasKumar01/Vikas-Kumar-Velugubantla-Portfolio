@@ -1,0 +1,15 @@
+{
+  "resumeDownloads": 0,
+  "pageViews": 1,
+  "messages": [],
+  "events": [
+    {
+      "type": "view",
+      "timestamp": "2026-07-06T14:46:10.945Z"
+    }
+  ],
+  "adminPasscode": "vikas2026",
+  "aiSettings": {
+    "useGeminiForContact": true
+  }
+}

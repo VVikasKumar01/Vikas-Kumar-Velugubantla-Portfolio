@@ -41,28 +41,9 @@ const DB_FILE = path.join(process.cwd(), "db.json");
 // In-memory local cache with starter baseline data
 let dbInMemory: DB = {
   adminPasscode: "vikas2026",
-  resumeDownloads: 142,
-  pageViews: 846,
-  messages: [
-    {
-      id: "msg_init_1",
-      name: "Hiring Manager (Google)",
-      email: "hiring@google.com",
-      message: "Hi Vikas, we love your VaidyaVani prescription parser project! When are you free for a call?",
-      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      category: "Job Opportunity",
-      sentiment: "Positive"
-    },
-    {
-      id: "msg_init_2",
-      name: "Hackathon Organizer",
-      email: "admin@genai-forge.org",
-      message: "Congratulations on winning 2nd prize at the GEN-AI FORGE Hackathon! Your certificate has been issued.",
-      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-      category: "Achievement",
-      sentiment: "Positive"
-    }
-  ]
+  resumeDownloads: 0,
+  pageViews: 0,
+  messages: []
 };
 
 // Firestore connection initialization
@@ -192,54 +173,9 @@ function readDB(): DB {
 
 // Helper to seed events historically if they are missing
 function seedEventsIfNeeded(db: DB): DB {
-  if (db.events && db.events.length > 0) {
-    return db;
+  if (!db.events) {
+    db.events = [];
   }
-
-  console.log("[Analytics Seed] Seeding historical events based on current counters...");
-  const events: Array<{ type: 'view' | 'download' | 'message'; timestamp: string }> = [];
-
-  // 1. Add events for existing messages
-  if (db.messages && db.messages.length > 0) {
-    db.messages.forEach(msg => {
-      events.push({
-        type: 'message',
-        timestamp: msg.timestamp
-      });
-    });
-  }
-
-  // 2. Add historical page views spread over the last 365 days
-  const now = Date.now();
-  const dayMs = 24 * 60 * 60 * 1000;
-  
-  // Seed up to the recorded pageViews
-  const viewsToSeed = Math.max(0, db.pageViews);
-  for (let i = 0; i < viewsToSeed; i++) {
-    // Generate timestamps distributed over the last year, weighted towards the present
-    const ageDays = Math.pow(Math.random(), 1.6) * 365;
-    const ts = new Date(now - ageDays * dayMs);
-    events.push({
-      type: 'view',
-      timestamp: ts.toISOString()
-    });
-  }
-
-  // 3. Add historical downloads spread over the last 365 days
-  const downloadsToSeed = Math.max(0, db.resumeDownloads);
-  for (let i = 0; i < downloadsToSeed; i++) {
-    const ageDays = Math.pow(Math.random(), 1.6) * 365;
-    const ts = new Date(now - ageDays * dayMs);
-    events.push({
-      type: 'download',
-      timestamp: ts.toISOString()
-    });
-  }
-
-  // Sort events chronologically (oldest first)
-  events.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-  
-  db.events = events;
   return db;
 }
 
@@ -391,9 +327,22 @@ async function bootSync() {
     const metricsDoc = await getDoc(doc(firestoreDb, "analytics", "metrics"));
     if (metricsDoc.exists()) {
       const data = metricsDoc.data();
-      dbInMemory.pageViews = data.pageViews ?? dbInMemory.pageViews;
-      dbInMemory.resumeDownloads = data.resumeDownloads ?? dbInMemory.resumeDownloads;
-      dbInMemory.events = data.events ?? dbInMemory.events;
+      // If Firestore contains the old high baseline values, purge them to start real-time organic tracking
+      if (data.pageViews >= 840 || data.resumeDownloads >= 140) {
+        console.log("[Boot Sync] Purging temporary legacy analytics from Firestore...");
+        dbInMemory.pageViews = 0;
+        dbInMemory.resumeDownloads = 0;
+        dbInMemory.events = [];
+        await setDoc(doc(firestoreDb, "analytics", "metrics"), {
+          pageViews: 0,
+          resumeDownloads: 0,
+          events: []
+        });
+      } else {
+        dbInMemory.pageViews = data.pageViews ?? dbInMemory.pageViews;
+        dbInMemory.resumeDownloads = data.resumeDownloads ?? dbInMemory.resumeDownloads;
+        dbInMemory.events = data.events ?? dbInMemory.events;
+      }
       console.log("[Boot Sync] Restored analytics and events from Firestore.");
     } else {
       console.log("[Boot Sync] Seeding analytics to Firestore...");
@@ -423,9 +372,19 @@ async function bootSync() {
     const msgQuery = await getDocs(collection(firestoreDb, "messages"));
     if (!msgQuery.empty) {
       const msgs: any[] = [];
-      msgQuery.forEach(doc => {
-        msgs.push(doc.data());
-      });
+      for (const d of msgQuery.docs) {
+        const msg = d.data();
+        if (msg.id === "msg_init_1" || msg.id === "msg_init_2" || msg.id.startsWith("msg_init_") || msg.name === "HI") {
+          console.log(`[Boot Sync] Purging temporary/test message ${msg.id} from Firestore...`);
+          try {
+            await deleteDoc(doc(firestoreDb, "messages", msg.id));
+          } catch (e) {
+            console.error(`Failed to delete temporary message ${msg.id}:`, e);
+          }
+        } else {
+          msgs.push(msg);
+        }
+      }
       msgs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       dbInMemory.messages = msgs;
       console.log(`[Boot Sync] Restored ${msgs.length} messages from Firestore.`);
@@ -504,28 +463,9 @@ const activeSessions = new Map<string, AdminSession>();
 // Initialize database with default file if it doesn't exist
 if (!fs.existsSync(DB_FILE)) {
     writeDB({
-        resumeDownloads: 142, // Start with a realistic mock baseline
-        pageViews: 846,
-        messages: [
-          {
-            id: "msg_init_1",
-            name: "Hiring Manager (Google)",
-            email: "hiring@google.com",
-            message: "Hi Vikas, we love your VaidyaVani prescription parser project! When are you free for a call?",
-            timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-            category: "Job Opportunity",
-            sentiment: "Positive"
-          },
-          {
-            id: "msg_init_2",
-            name: "Hackathon Organizer",
-            email: "admin@genai-forge.org",
-            message: "Congratulations on winning 2nd prize at the GEN-AI FORGE Hackathon! Your certificate has been issued.",
-            timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-            category: "Achievement",
-            sentiment: "Positive"
-          }
-        ]
+        resumeDownloads: 0,
+        pageViews: 0,
+        messages: []
     });
 }
 
@@ -580,6 +520,11 @@ async function startServer() {
 
   // Custom CORS middleware to allow cross-origin requests from Azure Static Web Apps (or anywhere in production)
   app.use((req, res, next) => {
+    // Normalize double-slashes in URL paths
+    if (req.url && req.url.includes("//")) {
+      req.url = req.url.replace(/\/{2,}/g, "/");
+    }
+    
     const origin = req.headers.origin;
     res.setHeader("Access-Control-Allow-Origin", origin || "*");
     res.setHeader("Access-Control-Allow-Methods", "GET, HEAD, PUT, PATCH, POST, DELETE, OPTIONS");
