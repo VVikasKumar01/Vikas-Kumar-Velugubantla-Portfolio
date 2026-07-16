@@ -24,8 +24,6 @@ export default function App() {
 
   // Secret admin entrance configurations
   const [showAdminPortal, setShowAdminPortal] = useState<boolean>(false);
-  const [logoClicks, setLogoClicks] = useState<number>(0);
-  const [lastClickTime, setLastClickTime] = useState<number>(0);
 
   // Verify secret URL parameter (?admin=true) on initial load, and clear any previous session tokens to prevent persistence on refresh
   useEffect(() => {
@@ -41,35 +39,6 @@ export default function App() {
       window.history.replaceState({}, document.title, cleanUrl);
     }
   }, []);
-
-  // Keyboard shortcut detector (Ctrl + Shift + A) as fallback trigger (transient state only)
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "a") {
-        e.preventDefault();
-        setShowAdminPortal(prev => !prev);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, []);
-
-  // Click gesture detector (Clicking the logo 5 times within 1.5 seconds) (transient state only)
-  const handleLogoClick = () => {
-    const now = Date.now();
-    if (now - lastClickTime < 1500) {
-      const clicks = logoClicks + 1;
-      setLogoClicks(clicks);
-      if (clicks >= 5) {
-        setShowAdminPortal(prev => !prev);
-        setLogoClicks(0);
-      }
-    } else {
-      setLogoClicks(1);
-    }
-    setLastClickTime(now);
-  };
 
   // Ping backend to determine online/offline status in real time
   useEffect(() => {
@@ -274,7 +243,6 @@ export default function App() {
           }
         }}
         showAdminPortal={showAdminPortal}
-        onLogoClick={handleLogoClick}
       />
 
       {/* Primary Orchestrator Stage viewport switcher */}
