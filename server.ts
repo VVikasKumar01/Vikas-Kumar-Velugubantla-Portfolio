@@ -478,13 +478,18 @@ interface AdminSession {
 }
 const activeSessions = new Map<string, AdminSession>();
 
-// Initialize database with default file if it doesn't exist
+// Initialize database with default file if it doesn't exist, without overwriting Firestore on boot
 if (!fs.existsSync(DB_FILE)) {
-    writeDB({
+    dbInMemory = {
         resumeDownloads: 0,
         pageViews: 0,
         messages: []
-    });
+    };
+    try {
+        fs.writeFileSync(DB_FILE, JSON.stringify(dbInMemory, null, 2), "utf-8");
+    } catch (err) {
+        console.error("Error creating initial local db.json backup:", err);
+    }
 }
 
 // Helper to execute content generation with a list of models and exponential retries
