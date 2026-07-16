@@ -367,6 +367,26 @@ async function bootSync() {
       });
     }
 
+    // Force custom ADMIN_PASSCODE environment variable to override and sync back to Firestore if configured
+    const envPasscode = cleanEnvValue(process.env.ADMIN_PASSCODE);
+    if (envPasscode && 
+        envPasscode !== "MY_ADMIN_PASSCODE" && 
+        envPasscode !== "YOUR_ADMIN_PASSCODE" && 
+        envPasscode !== "ADMIN_PASSCODE" && 
+        envPasscode !== "") {
+      if (dbInMemory.adminPasscode !== envPasscode) {
+        console.log("[Boot Sync] Detected customized ADMIN_PASSCODE environment variable. Syncing and overriding in Firestore...");
+        dbInMemory.adminPasscode = envPasscode;
+        await setDoc(doc(firestoreDb, "settings", "admin"), {
+          adminPasscode: envPasscode,
+          aiSettings: dbInMemory.aiSettings || { useGeminiForContact: true }
+        });
+        try {
+          fs.writeFileSync(DB_FILE, JSON.stringify(dbInMemory, null, 2), "utf-8");
+        } catch (e) {}
+      }
+    }
+
     // 4. Fetch messages
     const msgQuery = await getDocs(collection(firestoreDb, "messages"));
     if (!msgQuery.empty) {
@@ -416,9 +436,6 @@ function cleanEnvValue(val: string | undefined): string | undefined {
 let generatedPasscodeCache: string | null = null;
 
 function getAdminPasscode(db: DB): string {
-  if (db.adminPasscode) {
-    return db.adminPasscode;
-  }
   const envPasscode = cleanEnvValue(process.env.ADMIN_PASSCODE);
   if (envPasscode && 
       envPasscode !== "MY_ADMIN_PASSCODE" && 
@@ -426,6 +443,9 @@ function getAdminPasscode(db: DB): string {
       envPasscode !== "ADMIN_PASSCODE" && 
       envPasscode !== "") {
     return envPasscode;
+  }
+  if (db.adminPasscode) {
+    return db.adminPasscode;
   }
   if (generatedPasscodeCache) {
     return generatedPasscodeCache;
