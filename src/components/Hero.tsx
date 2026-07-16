@@ -52,6 +52,9 @@ export default function Hero({ onContactClick, onProjectsClick, trackDownload }:
       doc.text("Hyderabad, India  |  v.vikaskumar2005@gmail.com  |  +91 7674020722", 105, y, { align: "center" });
       y += 4;
 
+      doc.text("Portfolio: vikas-kumar-velugubantla-portfolio.onrender.com", 105, y, { align: "center" });
+      y += 4;
+
       doc.text("GitHub: github.com/VVikasKumar01  |  LinkedIn: linkedin.com/in/vikas-kumar-velugubantla", 105, y, { align: "center" });
       y += 5;
 
@@ -138,6 +141,46 @@ export default function Hero({ onContactClick, onProjectsClick, trackDownload }:
 
       // 5. EXPERIENCE
       renderSectionTitle("EXPERIENCE");
+
+      // Experience 1: Freelance
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);
+      doc.text("Apple Tree Play School (Client Project)", 15, y);
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.setTextColor(lightGray[0], lightGray[1], lightGray[2]);
+      doc.text("May 2026 - June 2026", 195, y, { align: "right" });
+      y += 3.8;
+
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(8.5);
+      doc.setTextColor(bodyColor[0], bodyColor[1], bodyColor[2]);
+      doc.text("Freelance Full-Stack Developer", 15, y);
+      y += 4;
+
+      const freelanceBullets = [
+        "Designed and engineered a custom School Management System ERP to digitize student admissions, fee tracking, and administrative records.",
+        "Implemented role-based secure access control (RBAC) to segment panels for administrators, teachers, and parents."
+      ];
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      freelanceBullets.forEach((bullet) => {
+        doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2]);
+        doc.text("•", 18, y);
+        doc.setTextColor(bodyColor[0], bodyColor[1], bodyColor[2]);
+        
+        const bulletLines = doc.splitTextToSize(bullet, 172);
+        bulletLines.forEach((line: string) => {
+          doc.text(line, 22, y);
+          y += 3.8;
+        });
+      });
+      y += 2.5;
+
+      // Experience 2: EduSkills
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
       doc.setTextColor(secondaryColor[0], secondaryColor[1], secondaryColor[2]);

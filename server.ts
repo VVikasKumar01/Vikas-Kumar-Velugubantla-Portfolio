@@ -40,7 +40,6 @@ const DB_FILE = path.join(process.cwd(), "db.json");
 
 // In-memory local cache with starter baseline data
 let dbInMemory: DB = {
-  adminPasscode: "vikas2026",
   resumeDownloads: 0,
   pageViews: 0,
   messages: []
@@ -129,7 +128,7 @@ async function syncToFirestore() {
       events: dbInMemory.events || []
     });
     await setDoc(doc(firestoreDb, "settings", "admin"), {
-      adminPasscode: dbInMemory.adminPasscode || "vikas2026",
+      adminPasscode: getAdminPasscode(dbInMemory),
       aiSettings: dbInMemory.aiSettings || { useGeminiForContact: true }
     });
   } catch (err) {
@@ -363,7 +362,7 @@ async function bootSync() {
     } else {
       console.log("[Boot Sync] Seeding settings to Firestore...");
       await setDoc(doc(firestoreDb, "settings", "admin"), {
-        adminPasscode: dbInMemory.adminPasscode || "vikas2026",
+        adminPasscode: getAdminPasscode(dbInMemory),
         aiSettings: dbInMemory.aiSettings || { useGeminiForContact: true }
       });
     }
@@ -414,6 +413,8 @@ function cleanEnvValue(val: string | undefined): string | undefined {
   return cleaned.trim();
 }
 
+let generatedPasscodeCache: string | null = null;
+
 function getAdminPasscode(db: DB): string {
   if (db.adminPasscode) {
     return db.adminPasscode;
@@ -426,7 +427,24 @@ function getAdminPasscode(db: DB): string {
       envPasscode !== "") {
     return envPasscode;
   }
-  return "vikas2026";
+  if (generatedPasscodeCache) {
+    return generatedPasscodeCache;
+  }
+  generatedPasscodeCache = crypto.randomBytes(4).toString("hex");
+  console.warn("\n============================================================");
+  console.warn("[SECURITY WARNING] No secure ADMIN_PASSCODE environment variable set.");
+  console.warn(`A secure, random temporary passcode has been generated: ${generatedPasscodeCache}`);
+  console.warn("Please set ADMIN_PASSCODE in your environment variables for production.");
+  console.warn("============================================================\n");
+  
+  db.adminPasscode = generatedPasscodeCache;
+  try {
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8");
+  } catch (err) {
+    console.error("Failed to persist dynamically generated passcode to db.json:", err);
+  }
+  
+  return generatedPasscodeCache;
 }
 
 // Lazy init for Gemini API
