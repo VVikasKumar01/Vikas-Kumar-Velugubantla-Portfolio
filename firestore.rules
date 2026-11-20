@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Default Catch-all (Deny All)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isValidId(id) { 
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+
+    // Analytics collection
+    match /analytics/{docId} {
+      allow read, write: if docId == 'metrics';
+    }
+
+    // Settings collection
+    match /settings/{docId} {
+      allow read, write: if docId == 'admin';
+    }
+
+    // Messages collection
+    match /messages/{docId} {
+      allow create: if isValidId(docId) 
+        && request.resource.data.name is string 
+        && request.resource.data.email is string 
+        && request.resource.data.message is string;
+      allow read, update, delete: if true;
+    }
+  }
+}
